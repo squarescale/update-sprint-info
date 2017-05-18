@@ -36,6 +36,8 @@ Specify the target component if applicable.
 
 ![](img/components.png)
 
+Feel free to add missing components.
+
 #### Check
 
 Check if a task contains mockups and test case.
