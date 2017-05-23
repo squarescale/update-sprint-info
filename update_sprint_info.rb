@@ -112,10 +112,23 @@ end
 days << [today].concat(p[:tasks]).concat(p[:points]).concat(p[:errors]).join(',')
 days.unshift(['date'].concat(p[:cols]).concat(p[:cols]).concat(p[:cols]).join(','))
 
-output << '|Start date|End date|Total tasks|Done tasks|Total points|Done points|'
-output << '|----------|--------|-----------|----------|------------|-----------|'
-output << "|#{start_date}|#{end_date}|#{p[:issues]}|#{p[:issues_done]}|#{p[:total]}|#{p[:done]}|"
+output << '|Start date   |End date   |'
+output << '|-------------|-----------|'
+output << "|#{start_date}|#{end_date}|"
+output << ''
 
+output << '### Tasks'
+output << ''
+output << '|Initial            |Total        |Done              |'
+output << '|-------------------|-------------|------------------|'
+output << "|#{initial_nb_tasks}|#{p[:issues]}|#{p[:issues_done]}|"
+output << ''
+
+output << '### Points'
+output << ''
+output << '|Initial          |Total       |Done       |'
+output << '|-----------------|------------|-----------|'
+output << "|#{initial_points}|#{p[:total]}|#{p[:done]}|"
 output << ''
 
 output << displayable_row.call(p[:cols].last(p[:cols].length - 1).unshift(''))
