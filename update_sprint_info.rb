@@ -10,6 +10,13 @@ def no_header(str)
   str.gsub '#', '\\#'
 end
 
+types = {
+  bug: '⚠ type: bug',
+  feature: '✨ type: feature',
+  improvement: '⭐ type: improvement',
+  tech: '⚒ type: tech'
+}
+
 has_labels = -> (issue) { issue.labels }
 is_closed = -> (issue) { issue.state == 'closed' }
 is_open = -> (issue) { issue.state == 'open' }
@@ -56,7 +63,8 @@ p = {
   total: 0,
   done: 0,
   issues: 0,
-  issues_done: 0
+  issues_done: 0,
+  issue_types: { bug: 0,  feature: 0, improvement: 0, tech: 0 }
 }
 
 project = client.project project_id
@@ -78,6 +86,15 @@ columns.each do |col|
   p[:done] += size_done
   p[:points] <<= size
   p[:errors] <<= issues_in_error.map { |issue| "[##{issue.number}](#{issue.html_url})" }.join(", ")
+
+  issues.each do |issue|
+    labels = label_names.call(issue)
+    types.each do |type, label|
+      if labels.include? label
+        p[:issue_types][type] += 1
+      end
+    end
+  end
 
   notes = cards.select { |card| !card.note.nil? }
   note = notes.first
@@ -129,6 +146,14 @@ output << ''
 output << '|Initial          |Total       |Done       |'
 output << '|-----------------|------------|-----------|'
 output << "|#{initial_points}|#{p[:total]}|#{p[:done]}|"
+output << ''
+
+issue_types = p[:issue_types]
+output << '### Types'
+output << ''
+output << '|Feature                 |Improvement                 |Bug                 |Tech                 |'
+output << '|------------------------|----------------------------|--------------------|---------------------|'
+output << "|#{issue_types[:feature]}|#{issue_types[:improvement]}|#{issue_types[:bug]}|#{issue_types[:tech]}|"
 output << ''
 
 output << displayable_row.call(p[:cols].last(p[:cols].length - 1).unshift(''))
