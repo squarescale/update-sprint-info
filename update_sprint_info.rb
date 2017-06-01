@@ -37,10 +37,10 @@ end
 
 label_names = -> (issue) { (issue&.labels || []).map(&:name) }
 
-has_mockups = -> (issue) { label_names.call(issue).include?('✅ mockups') }
-has_test_case = -> (issue) { label_names.call(issue).include?('✅ test case') }
-approved_on_production = -> (issue) { label_names.call(issue).include?('✅ approved on production') }
-approved_on_staging = -> (issue) { label_names.call(issue).include?('✅ approved on staging') }
+has_mockups = -> (issue) { label_names.call(issue).include?('✅ check: mockups') }
+has_test_case = -> (issue) { label_names.call(issue).include?('✅ check: test case') }
+approved_on_production = -> (issue) { label_names.call(issue).include?('✅ approved: production') }
+approved_on_staging = -> (issue) { label_names.call(issue).include?('✅ approved: staging') }
 
 displayable_row = -> (strings) { strings.join('|').prepend('|').concat('|') }
 
