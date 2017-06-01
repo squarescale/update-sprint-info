@@ -71,6 +71,7 @@ project = client.project project_id
 
 columns = project.rels[:columns].get.data
 columns.each do |col|
+  puts "Column #{col.name}"
   p[:cols] <<= col.name
   cards = col.rels[:cards].get.data
   issues = cards.select { |card| card.note.nil? }.map { |card| card.rels[:content].get.data }
@@ -100,12 +101,12 @@ columns.each do |col|
   note = notes.first
   status = []
   status << "**Status** `#{size}`"
-  unless issues_in_error.empty?
-    status << ""
-    status << "**Issues with warnings:**"
-    status << ""
-    status.concat(issues_in_error.map { |issue| "- [##{issue.number}](#{issue.html_url})" })
-  end
+  #unless issues_in_error.empty?
+  #  status << ""
+  #  status << "**Issues with warnings:**"
+  #  status << ""
+  #  status.concat(issues_in_error.map { |issue| "- [##{issue.number}](#{issue.html_url})" })
+  #end
   client.update_project_card(note.id, note: status.join("\n"))
 end
 
