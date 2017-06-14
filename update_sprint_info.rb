@@ -53,6 +53,15 @@ rules = {
   '✔ Done' => [approved_on_production]
 }
 
+limits = {
+  '📚 Backlog' => nil,
+  '🔍 Spec' => 2,
+  '👷 Dev' => 4,
+  '🛴 Staging' => 6,
+  '🚀 Prod' => 6,
+  '✔ Done' => nil
+}
+
 output = []
 
 p = {
@@ -60,6 +69,7 @@ p = {
   tasks: [ '**tasks**' ],
   points: [ '**size**' ],
   errors: [ '**warnings**' ],
+  limits: [ '**limits**' ],
   total: 0,
   done: 0,
   issues: 0,
@@ -76,6 +86,9 @@ columns.each do |col|
   cards = col.rels[:cards].get.data
   issues = cards.select { |card| card.note.nil? }.map { |card| card.rels[:content].get.data }
   p[:tasks] << issues.length
+  limit = limits[col.name]
+  limit_ok = if not limit.nil? then issues.length <= limit else true end
+  p[:limits] << limit_ok
   p[:issues] += issues.length
   p[:issues_done] += issues.select(&is_closed).length
   size = size_of_issues.call(issues) || 0
@@ -86,7 +99,7 @@ columns.each do |col|
   p[:total] += size
   p[:done] += size_done
   p[:points] <<= size
-  p[:errors] <<= issues_in_error.map { |issue| "[##{issue.number}](#{issue.html_url})" }.join(", ")
+  p[:errors] <<= issues_in_error.map { |issue| "[##{issue.number}](#{issue.html_url})" }.join(" - ")
 
   issues.each do |issue|
     labels = label_names.call(issue)
@@ -100,13 +113,24 @@ columns.each do |col|
   notes = cards.select { |card| !card.note.nil? }
   note = notes.first
   status = []
-  status << "**Status** `#{size}`"
-  #unless issues_in_error.empty?
-  #  status << ""
-  #  status << "**Issues with warnings:**"
-  #  status << ""
-  #  status.concat(issues_in_error.map { |issue| "- [##{issue.number}](#{issue.html_url})" })
-  #end
+  status << "**Points** `#{size}`"
+  task_status = "**Tasks** `#{issues.length}"
+  unless limit.nil?
+    task_status += "/#{limit}"
+  end
+  task_status += "`"
+  status << task_status
+  unless limit_ok
+    status << ""
+    status << "**Limit exceeded by #{issues.length - limit}**"
+    status << ""
+  end
+  unless issues_in_error.empty?
+    status << ""
+    status << "*Issues with warnings:*"
+    status << ""
+    status.concat(issues_in_error.map { |issue| "- ##{issue.number}" })
+  end
   client.update_project_card(note.id, note: status.join("\n"))
 end
 
@@ -127,8 +151,8 @@ if details.length > 5
     days.pop
   end
 end
-days << [today].concat(p[:tasks]).concat(p[:points]).concat(p[:errors]).join(',')
-days.unshift(['date'].concat(p[:cols]).concat(p[:cols]).concat(p[:cols]).join(','))
+days << [today].concat(p[:tasks]).concat(p[:points]).concat(p[:errors]).concat(p[:limits]).join(',')
+days.unshift(['date'].concat(p[:cols]).concat(p[:cols]).concat(p[:cols]).concat(p[:cols]).join(','))
 
 output << '|Start date   |End date   |'
 output << '|-------------|-----------|'
@@ -162,6 +186,7 @@ output << displayable_row.call(Array.new(p[:cols].size, '---'))
 output << displayable_row.call(p[:tasks])
 output << displayable_row.call(p[:points])
 output << displayable_row.call(p[:errors])
+output << displayable_row.call(p[:limits]).gsub('true', '').gsub('false', 'TOO MANY ITEMS')
 
 output << ''
 
