@@ -55,7 +55,7 @@ rules = {
 
 limits = {
   '📚 Backlog' => nil,
-  '🔍 Spec' => 2,
+  '🔍 Spec' => 3,
   '👷 Dev' => 4,
   '🛴 Staging' => 6,
   '🚀 Prod' => 6,
