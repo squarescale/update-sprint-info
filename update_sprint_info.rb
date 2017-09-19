@@ -50,7 +50,7 @@ rules = {
   '👷 Dev' => [has_mockups, has_test_case],
   '🛴 Staging' => [],
   '🚀 Prod' => [approved_on_staging],
-  '✔ Done' => [approved_on_production]
+  '✔ Done - 📰 Release Note' => [approved_on_production]
 }
 
 limits = {
@@ -59,7 +59,7 @@ limits = {
   '👷 Dev' => 8,
   '🛴 Staging' => 6,
   '🚀 Prod' => 6,
-  '✔ Done' => nil
+  '✔ Done - 📰 Release Note' => nil
 }
 
 output = []
