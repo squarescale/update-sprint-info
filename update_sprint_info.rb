@@ -37,10 +37,10 @@ end
 
 label_names = -> (issue) { (issue&.labels || []).map(&:name) }
 
-has_mockups = -> (issue) { label_names.call(issue).include?('✅ check: mockups') }
-has_test_case = -> (issue) { label_names.call(issue).include?('✅ check: test case') }
-approved_on_production = -> (issue) { label_names.call(issue).include?('✅ approved: production') }
-approved_on_staging = -> (issue) { label_names.call(issue).include?('✅ approved: staging') }
+has_mockups = -> (issue) { label_names.call(issue).include?('✅ check: mockups') ? nil : "mockups"}
+has_test_case = -> (issue) { label_names.call(issue).include?('✅ check: test case') ? nil : "test case" }
+approved_on_production = -> (issue) { label_names.call(issue).include?('✅ approved: production') ? nil : "production approval" }
+approved_on_staging = -> (issue) { label_names.call(issue).include?('✅ approved: staging') ? nil : "staging approval" }
 
 displayable_row = -> (strings) { strings.join('|').prepend('|').concat('|') }
 
@@ -93,9 +93,11 @@ columns.each do |col|
   p[:issues_done] += issues.select(&is_closed).length
   size = size_of_issues.call(issues) || 0
   size_done = size_of_issues.call(issues.select(&is_closed)) || 0
-  issues_in_error = issues.reject do |issue|
-    rules[col.name].map { |rule| rule.call(issue) }.all?
-  end
+  issue_errors = Hash[issues.map do |issue|
+    errors = rules[col.name].map { |rule| rule.call(issue) }.compact
+    [issue, errors] unless errors.empty?
+  end.compact]
+  issues_in_error = issue_errors.keys
   p[:total] += size
   p[:done] += size_done
   p[:points] <<= size
@@ -126,10 +128,7 @@ columns.each do |col|
     status << ""
   end
   unless issues_in_error.empty?
-    status << ""
-    status << "*Issues with warnings:*"
-    status << ""
-    status.concat(issues_in_error.map { |issue| "- ##{issue.number}" })
+    status.concat(issue_errors.map { |issue, errors| "⚠ ##{issue.number}: missing #{errors.join(", ")}" })
   end
   client.update_project_card(note.id, note: status.join("\n"))
 end
